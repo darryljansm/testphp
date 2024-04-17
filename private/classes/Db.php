@@ -116,6 +116,53 @@ class Db {
             return $data;
         }
     }
+
+    /**
+     * Execute a DELETE query.
+     *
+     * @param string $table The table name.
+     * @param string $where The WHERE clause.
+     * @param array $params The parameters for the query.
+     * @return array The result of the query.
+     */
+    public function deleteData($table, $where, $params = array()) {
+        $sql = "DELETE FROM {$table} WHERE {$where}";
+        try {
+            $stmt = $this->_conn->prepare($sql);
+            $stmt->execute($params);
+            $rowCount = $stmt->rowCount();
+            $data = array('result' => 1, 'message' => "Deleted {$rowCount} row(s)");
+            return $data;
+        } catch (PDOException $e) {
+            $data = array('result' => 0, 'message' => $e->getMessage());
+            return $data;
+        }
+    }
+
+    /**
+     * Get the most recent ID updated in the table based on the condition.
+     *
+     * @param string $table The table name.
+     * @param string $where The WHERE clause.
+     * @param array $params The parameters for the query.
+     * @param string $idField The name of the ID field.
+     * @return mixed|null The most recent ID updated, or null if not found.
+     */
+    public function getRecentId($table, $where, $params = array(), $idField = 'ID') {
+        $sql = "SELECT {$idField} FROM {$table} WHERE {$where} ORDER BY {$idField} DESC LIMIT 1";
+        try {
+            $stmt = $this->_conn->prepare($sql);
+            $stmt->execute($params);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result[$idField] : null;
+        } catch(PDOException $e) {
+            echo 'Error: '.$e->getMessage();
+            return null;
+        }
+    }
+
+
+
 }
 
 
